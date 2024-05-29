@@ -22,19 +22,18 @@ package org.neo4j.kernel.database;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class MapCachingDatabaseIdRepository implements DatabaseIdRepository.Caching
 {
-    private static final Optional<NamedDatabaseId> OPT_SYS_DB = Optional.of( NamedDatabaseId.NAMED_SYSTEM_DATABASE_ID );
+//    private static final Optional<NamedDatabaseId> OPT_SYS_DB = Optional.of( NamedDatabaseId.NAMED_SYSTEM_DATABASE_ID );
 
-    private final DatabaseIdRepository delegate;
     private volatile Map<String,NamedDatabaseId> databaseIdsByName;
     private volatile Map<DatabaseId,NamedDatabaseId> databaseIdsByUuid;
 
-    public MapCachingDatabaseIdRepository( DatabaseIdRepository delegate )
+    public MapCachingDatabaseIdRepository( )
     {
-        this.delegate = delegate;
         this.databaseIdsByName = new ConcurrentHashMap<>();
         this.databaseIdsByUuid = new ConcurrentHashMap<>();
     }
@@ -42,11 +41,11 @@ public class MapCachingDatabaseIdRepository implements DatabaseIdRepository.Cach
     @Override
     public Optional<NamedDatabaseId> getByName( NormalizedDatabaseName databaseName )
     {
-        if ( NamedDatabaseId.NAMED_SYSTEM_DATABASE_ID.name().equals( databaseName.name() ) )
-        {
-            return OPT_SYS_DB;
-        }
-        var dbId = Optional.ofNullable( databaseIdsByName.computeIfAbsent( databaseName.name(), name -> delegate.getByName( name ).orElse( null ) ) );
+//        if ( NamedDatabaseId.NAMED_SYSTEM_DATABASE_ID.name().equals( databaseName.name() ) )
+//        {
+//            return OPT_SYS_DB;
+//        }
+        var dbId = Optional.ofNullable( databaseIdsByName.getOrDefault( databaseName.name(), new NamedDatabaseId(databaseName.name(), UUID.fromString("9fbef8ae-6ca7-4192-8e9f-659acc5120b2"))));//todo pandadb db has no uuid
         dbId.ifPresent( id -> databaseIdsByUuid.put( id.databaseId(), id ) );
         return dbId;
     }
@@ -54,11 +53,11 @@ public class MapCachingDatabaseIdRepository implements DatabaseIdRepository.Cach
     @Override
     public Optional<NamedDatabaseId> getById( DatabaseId uuid )
     {
-        if ( NamedDatabaseId.NAMED_SYSTEM_DATABASE_ID.databaseId().equals( uuid ) )
-        {
-            return OPT_SYS_DB;
-        }
-        var dbId = Optional.ofNullable( databaseIdsByUuid.computeIfAbsent( uuid, id -> delegate.getById( id ).orElse( null ) ) );
+//        if ( NamedDatabaseId.NAMED_SYSTEM_DATABASE_ID.databaseId().equals( uuid ) )
+//        {
+//            return OPT_SYS_DB;
+//        }
+        var dbId = Optional.ofNullable( databaseIdsByUuid.getOrDefault( uuid, new NamedDatabaseId("neo4j", uuid)));//todo pandadb db has no uuid
         dbId.ifPresent( id -> databaseIdsByName.put( id.name(), id ) );
         return dbId;
     }
