@@ -4,7 +4,7 @@ import org.grapheco.lynx.LynxResult
 import org.grapheco.pandadb.facade.PandaTransaction
 import org.neo4j.graphdb.{ExecutionPlanDescription, NotFoundException, Notification, QueryExecutionType, QueryStatistics, ResourceIterator, Result}
 
-import java.io.PrintWriter
+import java.io.{PrintWriter}
 import scala.collection.JavaConverters._
 import java.{lang, util}
 case class ResultImpl(private val tx: PandaTransaction, private val delegate: LynxResult) extends Result {
@@ -35,7 +35,9 @@ case class ResultImpl(private val tx: PandaTransaction, private val delegate: Ly
 
   override def hasNext: Boolean = delegate.records().hasNext
 
-  override def next(): util.Map[String, AnyRef] = delegate.records().next().toMap.mapValues(_.value.asInstanceOf[AnyRef]).asJava
+  override def next(): util.Map[String, AnyRef] = {
+    delegate.records().next().toMap.mapValues(lv => TypeConverter.type2neoType(lv.value.asInstanceOf[AnyRef])).asJava
+  }
 
   override def close(): Unit = {}
 
@@ -43,7 +45,10 @@ case class ResultImpl(private val tx: PandaTransaction, private val delegate: Ly
 
   override def getExecutionPlanDescription: ExecutionPlanDescription = ???
 
-  override def resultAsString(): String = ???
+  override def resultAsString(): String = {
+    this.delegate.show()
+    delegate.toString//TODO
+  }
 
   override def writeAsStringTo(writer: PrintWriter): Unit = ???
 
