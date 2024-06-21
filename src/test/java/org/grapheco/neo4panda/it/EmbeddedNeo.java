@@ -16,24 +16,20 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.neo4j.examples;
+package org.grapheco.neo4panda.it;
+
+import org.grapheco.neo4panda.TestUtil;
 
 import java.io.IOException;
 import java.nio.file.Path;
-
-import org.neo4j.dbms.api.DatabaseManagementService;
-import org.neo4j.dbms.api.DatabaseManagementServiceBuilder;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.io.fs.FileUtils;
 
-import static org.neo4j.configuration.GraphDatabaseSettings.DEFAULT_DATABASE_NAME;
-
-public class EmbeddedNeo4j
+public class EmbeddedNeo
 {
     private static final Path databaseDirectory = Path.of( "out/neo4j-hello-db" );
 
@@ -44,8 +40,6 @@ public class EmbeddedNeo4j
     Node firstNode;
     Node secondNode;
     Relationship relationship;
-    private DatabaseManagementService managementService;
-    // end::vars[]
 
     // tag::createReltype[]
     private enum RelTypes implements RelationshipType
@@ -56,20 +50,24 @@ public class EmbeddedNeo4j
 
     public static void main( final String[] args ) throws IOException
     {
-        EmbeddedNeo4j hello = new EmbeddedNeo4j();
+        TestUtil.startDBMSService();
+        EmbeddedNeo hello = new EmbeddedNeo();
         hello.createDb();
         hello.removeData();
-        hello.shutDown();
     }
 
     void createDb() throws IOException
     {
-        FileUtils.deleteDirectory( databaseDirectory );
-
         // tag::startDb[]
-        managementService = new DatabaseManagementServiceBuilder( databaseDirectory ).build();
-        graphDb = managementService.database( DEFAULT_DATABASE_NAME );
-        registerShutdownHook( managementService );
+        graphDb = TestUtil.createDb();
+        Runtime.getRuntime().addShutdownHook( new Thread()
+        {
+            @Override
+            public void run()
+            {
+                TestUtil.shutDownDBMSService();
+            }
+        } );
         // end::startDb[]
 
         // tag::transaction[]
@@ -119,30 +117,4 @@ public class EmbeddedNeo4j
             tx.commit();
         }
     }
-
-    void shutDown()
-    {
-        System.out.println();
-        System.out.println( "Shutting down database ..." );
-        // tag::shutdownServer[]
-        managementService.shutdown();
-        // end::shutdownServer[]
-    }
-
-    // tag::shutdownHook[]
-    private static void registerShutdownHook( final DatabaseManagementService managementService )
-    {
-        // Registers a shutdown hook for the Neo4j instance so that it
-        // shuts down nicely when the VM exits (even if you "Ctrl-C" the
-        // running application).
-        Runtime.getRuntime().addShutdownHook( new Thread()
-        {
-            @Override
-            public void run()
-            {
-                managementService.shutdown();
-            }
-        } );
-    }
-    // end::shutdownHook[]
 }
