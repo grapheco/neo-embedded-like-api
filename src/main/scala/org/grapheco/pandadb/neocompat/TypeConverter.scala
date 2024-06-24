@@ -5,6 +5,7 @@ import org.grapheco.pandadb.facade.Direction.Direction
 import org.grapheco.pandadb.facade.Direction
 import org.neo4j.values.storable.Values
 
+import java.util
 import scala.collection.JavaConverters._
 
 object TypeConverter {
@@ -25,14 +26,23 @@ object TypeConverter {
     }
   }
 
-  def type2neoType(origin: AnyRef): AnyRef = {
+  def scalaType2javaType(origin: Any): Any = {
     origin match {
-      case l: List[AnyRef] => l.map(type2neoType(_)).asJava
-      case m: Map[String, AnyRef] => m.mapValues(type2neoType(_)).asJava
+      case l: List[Any] => l.map(scalaType2javaType(_)).asJava
+      case m: Map[String, Any] => m.mapValues(scalaType2javaType(_)).asJava
       case p: Geographic2D => Values.pointValue(org.neo4j.values.storable.CoordinateReferenceSystem.WGS84, p.x.value, p.y.value)
       case _ => origin
     }
   }
 
+  def javaType2scalaType(origin: Any): Any = {
+    origin match {
+      case v: util.Map[Any, Any] => v.asScala.toMap
+      case v: util.List[Any] => v.asScala.toList
+      case v: util.Collection[Any] => v.asScala
+      case v: util.Set[Any] => v.asScala.toSet
+      case v: Any  => v
+    }
+  }
 }
 
