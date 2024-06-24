@@ -42,7 +42,7 @@ case class RelationshipImpl(private val tx: PandaTransaction, private var delega
 
   override def isType(`type`: RelationshipType): Boolean = delegate.relationType.map(_.value.equals(`type`.name())).getOrElse(false)
 
-  override def getId: Long = delegate.id.toLynxInteger.v
+  override def getId: Long = delegate.id.toLynxInteger.v-1 //PandaRel id starts from 1, but neo starts from 0.
 
   override def setProperty(key: String, value: Any): Unit = {
     val newRel = tx.updateRelationShip(delegate.id, Map(LynxPropertyKey(key)->LynxValue(value))).get

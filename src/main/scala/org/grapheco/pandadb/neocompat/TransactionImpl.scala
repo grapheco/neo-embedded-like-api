@@ -41,13 +41,13 @@ class TransactionImpl(private val delegate: PandaTransaction) extends Transactio
 
   override def getNodeById(id: Long): Node = {
     checkState()
-    val pn = this.delegate.nodeAt(id).getOrElse(throw new NotFoundException())
+    val pn = this.delegate.nodeAt(id+1).getOrElse(throw new NotFoundException()) //PandaNode id starts from 1, but neo starts from 0.
     NodeImpl(delegate, pn)
   }
 
   override def getRelationshipById(id: Long): Relationship = {
     checkState()
-    val pr = this.delegate.relationshipAt(id).getOrElse(throw new NotFoundException())
+    val pr = this.delegate.relationshipAt(id+1).getOrElse(throw new NotFoundException())//PandaRel id starts from 1, but neo starts from 0.
     RelationshipImpl(delegate, pr)
   }
 

@@ -92,7 +92,7 @@ case class NodeImpl(private val tx: PandaTransaction, private var delegate: Lynx
 
   override def getLabels: lang.Iterable[Label] = delegate.labels.map(l => Label.label(l.value)).asJava
 
-  override def getId: Long = delegate.id.toLynxInteger.v
+  override def getId: Long = delegate.id.toLynxInteger.v-1 //PandaNode id starts from 1, but neo starts from 0.
 
   override def setProperty(key: String, value: Any): Unit = {
     val newNode = tx.updateNode(delegate.id, Seq.empty, Map(LynxPropertyKey(key) -> LynxValue(value))).get
