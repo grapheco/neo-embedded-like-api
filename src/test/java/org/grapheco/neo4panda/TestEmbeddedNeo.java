@@ -16,9 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.grapheco.neo4panda.it;
-
-import org.grapheco.neo4panda.TestUtil;
+package org.grapheco.neo4panda;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -29,7 +27,7 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
 
-public class EmbeddedNeo
+public class TestEmbeddedNeo
 {
     private static final Path databaseDirectory = Path.of( "out/neo4j-hello-db" );
 
@@ -51,7 +49,7 @@ public class EmbeddedNeo
     public static void main( final String[] args ) throws IOException
     {
         TestUtil.startDBMSService();
-        EmbeddedNeo hello = new EmbeddedNeo();
+        TestEmbeddedNeo hello = new TestEmbeddedNeo();
         hello.createDb();
         hello.removeData();
     }

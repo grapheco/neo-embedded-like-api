@@ -2,7 +2,7 @@ package org.grapheco.pandadb.neocompat
 
 import org.grapheco.lynx.types.LynxValue
 import org.neo4j.graphdb.{Direction, Label, Node, Relationship, RelationshipType}
-import org.grapheco.lynx.types.structural.{HasProperty, LynxNode, LynxNodeLabel, LynxPropertyKey}
+import org.grapheco.lynx.types.structural.{LynxNode, LynxNodeLabel, LynxPropertyKey}
 import org.grapheco.pandadb.facade
 import org.grapheco.pandadb.facade.PandaTransaction
 
@@ -79,32 +79,30 @@ case class NodeImpl(private val tx: PandaTransaction, private var delegate: Lynx
   override def addLabel(label: Label): Unit = {
     val newNode = tx.updateNode(delegate.id, Seq(LynxNodeLabel(label.name())), Map.empty).get
     delegate = newNode
-    setEntityDelegate(newNode)
+    updateEntity(newNode)
   }
 
   override def removeLabel(label: Label): Unit = {
     val newNode = tx.removeNodesLabels(Seq(delegate.id).iterator, Array(label.name())).next().get
     delegate = newNode
-    setEntityDelegate(newNode)
+    updateEntity(newNode)
   }
 
   override def hasLabel(label: Label): Boolean = delegate.labels.contains(LynxNodeLabel(label.name()))
 
   override def getLabels: lang.Iterable[Label] = delegate.labels.map(l => Label.label(l.value)).asJava
 
-  override def getId: Long = delegate.id.toLynxInteger.v-1 //PandaNode id starts from 1, but neo starts from 0.
-
   override def setProperty(key: String, value: Any): Unit = {
     val newNode = tx.updateNode(delegate.id, Seq.empty, Map(LynxPropertyKey(key) -> LynxValue(value))).get
     delegate = newNode
-    setEntityDelegate(newNode)
+    updateEntity(newNode)
   } //TODO value type check
 
   override def removeProperty(key: String): AnyRef = {
     val old = getProperty(key, null)
     val newNode = tx.removeNodesProperties(Seq(delegate.id).iterator, Array(key)).next().get
     delegate = newNode
-    setEntityDelegate(newNode)
+    updateEntity(newNode)
     old
   }
 
