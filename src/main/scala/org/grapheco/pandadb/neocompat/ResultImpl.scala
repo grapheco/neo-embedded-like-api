@@ -1,24 +1,24 @@
 package org.grapheco.pandadb.neocompat
 
-import org.grapheco.lynx.LynxResult
+import org.grapheco.lynx.{LynxResult, LynxRecord}
 import org.grapheco.pandadb.facade.PandaTransaction
+import org.neo4j.cypher.internal.javacompat.ResultRowImpl
 import org.neo4j.graphdb.{ExecutionPlanDescription, NotFoundException, Notification, QueryExecutionType, QueryStatistics, ResourceIterator, Result}
 
-import java.io.{PrintWriter}
+import java.io.PrintWriter
 import scala.collection.JavaConverters._
 import java.{lang, util}
+
 case class ResultImpl(private val tx: PandaTransaction, private val delegate: LynxResult) extends Result {
 
-  private var _columns: util.List[String] = null
+  private val _iterator: Iterator[LynxRecord] = delegate.records()
+  private val _columns: util.List[String] = delegate.columns().toList.asJava
   override def getQueryExecutionType: QueryExecutionType = ???
 
-  override def columns(): util.List[String] = {
-    if (_columns == null) _columns = delegate.columns().toList.asJava
-    _columns
-  }
+  override def columns(): util.List[String] = _columns
 
   override def columnAs[T](name: String): ResourceIterator[T] = {
-    if (!delegate.columns().contains(name)) throw new NotFoundException()
+    if (!_columns.contains(name)) throw new NotFoundException()
     new ResourceIterator[T]() {
       override def close(): Unit = {
         ResultImpl.this.close()
@@ -33,10 +33,10 @@ case class ResultImpl(private val tx: PandaTransaction, private val delegate: Ly
     }
   }
 
-  override def hasNext: Boolean = delegate.records().hasNext
+  override def hasNext: Boolean = _iterator.hasNext
 
   override def next(): util.Map[String, AnyRef] = {
-    delegate.records().next().toMap.mapValues(lv => TypeConverter.scalaType2javaType(lv.value).asInstanceOf[AnyRef]).asJava
+    _iterator.next().toMap.mapValues(lv => TypeConverter.scalaType2javaType(lv.value).asInstanceOf[AnyRef]).asJava
   }
 
   override def close(): Unit = {}
@@ -45,14 +45,19 @@ case class ResultImpl(private val tx: PandaTransaction, private val delegate: Ly
 
   override def getExecutionPlanDescription: ExecutionPlanDescription = ???
 
-  override def resultAsString(): String = {
-    this.delegate.show()
-    delegate.toString//TODO
-  }
+  override def resultAsString(): String = this.delegate.asString()
 
-  override def writeAsStringTo(writer: PrintWriter): Unit = ???
+  override def writeAsStringTo(writer: PrintWriter): Unit = {
+    writer.write(resultAsString())
+  }
 
   override def getNotifications: lang.Iterable[Notification] = ???
 
-  override def accept[VisitationException <: Exception](visitor: Result.ResultVisitor[VisitationException]): Unit = ???
+  override def accept[VisitationException <: Exception](visitor: Result.ResultVisitor[VisitationException]): Unit = {
+    while(hasNext) {
+      val r = new ResultRowImpl(next)
+      visitor.visit(r)
+    }
+    close()
+  }
 }
