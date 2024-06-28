@@ -1,13 +1,12 @@
 package org.grapheco.pandadb.neocompat
 
-import org.neo4j.graphdb.{Entity, ResourceIterator}
+import org.neo4j.graphdb.ResourceIterator
 
-class EntityIterator[E <:Entity](eIterator: Iterator[Entity]) extends ResourceIterator[E]{
+class EntityIterator[Entity](eIterator: Iterator[Entity]) extends ResourceIterator[Entity]{
 
-  override def close(): Unit ={
-  }
+  override def close(): Unit = {}
 
-  override def hasNext: Boolean = ???
+  override def hasNext: Boolean = eIterator.hasNext
 
-  override def next(): E = ???
+  override def next(): Entity = eIterator.next()
 }
