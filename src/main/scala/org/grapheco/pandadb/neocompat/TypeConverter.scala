@@ -1,6 +1,6 @@
 package org.grapheco.pandadb.neocompat
 
-import org.grapheco.lynx.types.spatial.Geographic2D
+import org.grapheco.lynx.types.spatial.{Geographic2D, Cartesian2D}
 import org.grapheco.pandadb.facade.Direction.Direction
 import org.grapheco.pandadb.facade.Direction
 import org.neo4j.values.storable.Values
@@ -31,6 +31,7 @@ object TypeConverter {
       case l: List[Any] => l.map(scalaType2javaType(_)).asJava
       case m: Map[String, Any] => m.mapValues(scalaType2javaType(_)).asJava
       case p: Geographic2D => Values.pointValue(org.neo4j.values.storable.CoordinateReferenceSystem.WGS84, p.x.value, p.y.value)
+      case p: Cartesian2D => Values.pointValue(org.neo4j.values.storable.CoordinateReferenceSystem.Cartesian, p.x.value, p.y.value)
       case _ => origin
     }
   }
