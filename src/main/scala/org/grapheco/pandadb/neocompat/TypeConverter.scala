@@ -1,6 +1,7 @@
 package org.grapheco.pandadb.neocompat
 
-import org.grapheco.lynx.types.spatial.{Geographic2D, Cartesian2D}
+import org.grapheco.lynx.types.property.LynxFloat
+import org.grapheco.lynx.types.spatial.{Cartesian2D, Geographic2D}
 import org.grapheco.pandadb.facade.Direction.Direction
 import org.grapheco.pandadb.facade.Direction
 import org.neo4j.values.storable.Values
@@ -42,6 +43,14 @@ object TypeConverter {
       case v: util.List[Any] => v.asScala.toList
       case v: util.Collection[Any] => v.asScala
       case v: util.Set[Any] => v.asScala.toSet
+      case p: org.neo4j.graphdb.spatial.Point =>
+        val cs = p.getCoordinate.getCoordinate
+        val x = LynxFloat(cs.get(0))
+        val y = LynxFloat(cs.get(1))
+        p.getCRS match {
+          case org.neo4j.values.storable.CoordinateReferenceSystem.WGS84 => Geographic2D(x, y)
+          case org.neo4j.values.storable.CoordinateReferenceSystem.Cartesian => Cartesian2D(x, y)
+        }
       case v: Any  => v
     }
   }
