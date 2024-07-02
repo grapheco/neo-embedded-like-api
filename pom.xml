@@ -6,7 +6,7 @@
     <groupId>org.grapheco</groupId>
     <artifactId>neo4panda</artifactId>
     <packaging>pom</packaging>
-    <version>0.5.0-SNAPSHOT</version>
+    <version>0.5.0-beta</version>
 
     <properties>
         <neo4j.target.version>4.4.32</neo4j.target.version>
