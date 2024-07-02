@@ -1,9 +1,11 @@
 package org.grapheco.pandadb.neocompat
 
-import org.grapheco.lynx.types.property.LynxFloat
-import org.grapheco.lynx.types.spatial.{Cartesian2D, Geographic2D}
+import org.grapheco.lynx.types.LynxValue
+import org.grapheco.lynx.types.property.{LynxFloat, LynxNull}
+import org.grapheco.lynx.types.spatial.{Cartesian2D, Cartesian3D, Geographic2D, Geographic3D}
 import org.grapheco.pandadb.facade.Direction.Direction
 import org.grapheco.pandadb.facade.Direction
+import org.neo4j.exceptions.CypherExecutionException
 import org.neo4j.values.storable.Values
 
 import java.util
@@ -27,31 +29,37 @@ object TypeConverter {
     }
   }
 
-  def scalaType2javaType(origin: Any): Any = {
-    origin match {
-      case l: List[Any] => l.map(scalaType2javaType(_)).asJava
-      case m: Map[String, Any] => m.mapValues(scalaType2javaType(_)).asJava
+  def unwrapLynxValue(origin: LynxValue): Any = {
+    origin.value match {
+      case l: List[LynxValue] => l.map(unwrapLynxValue).asJava
+      case m: Map[String, LynxValue] => m.mapValues(unwrapLynxValue).asJava
       case p: Geographic2D => Values.pointValue(org.neo4j.values.storable.CoordinateReferenceSystem.WGS84, p.x.value, p.y.value)
+      case p: Geographic3D => Values.pointValue(org.neo4j.values.storable.CoordinateReferenceSystem.WGS84_3D, p.x.value, p.y.value, p.z.value)
       case p: Cartesian2D => Values.pointValue(org.neo4j.values.storable.CoordinateReferenceSystem.Cartesian, p.x.value, p.y.value)
-      case _ => origin
+      case p: Cartesian3D => Values.pointValue(org.neo4j.values.storable.CoordinateReferenceSystem.Cartesian_3D, p.x.value, p.y.value, p.z.value)
+      case other => other
     }
   }
 
-  def javaType2scalaType(origin: Any): Any = {
+  def toLynxValue(origin: Any): Any = {
     origin match {
-      case v: util.Map[Any, Any] => v.asScala.toMap
-      case v: util.List[Any] => v.asScala.toList
-      case v: util.Collection[Any] => v.asScala
-      case v: util.Set[Any] => v.asScala.toSet
+      case v: Array[Any] => v.map(toLynxValue) // java array
+      case v: util.List[Any] => v.asScala.toList.map(toLynxValue)
+      case v: util.Map[Any, Any] => v.asScala.toMap.mapValues(toLynxValue)
+      case v: util.Collection[Any] => v.asScala.map(toLynxValue)
+      case v: util.Set[Any] => v.asScala.toSet.map(toLynxValue)
       case p: org.neo4j.graphdb.spatial.Point =>
         val cs = p.getCoordinate.getCoordinate
         val x = LynxFloat(cs.get(0))
         val y = LynxFloat(cs.get(1))
-        p.getCRS match {
-          case org.neo4j.values.storable.CoordinateReferenceSystem.WGS84 => Geographic2D(x, y)
-          case org.neo4j.values.storable.CoordinateReferenceSystem.Cartesian => Cartesian2D(x, y)
+        p.getCRS.getCode match {
+          case 4326 => Geographic2D(x, y)
+          case 4979 => Geographic3D(x, y, LynxFloat(cs.get(3)))
+          case 7203 => Cartesian2D(x, y)
+          case 9157 => Cartesian3D(x, y, LynxFloat(cs.get(3)))
         }
-      case v: Any  => v
+      case _: org.neo4j.graphdb.spatial.Geometry => throw new CypherExecutionException("PandaDB hasn't support Geometry data type.")
+      case v  => LynxValue(v)
     }
   }
 }

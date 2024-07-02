@@ -36,7 +36,7 @@ case class ResultImpl(private val tx: PandaTransaction, private val delegate: Ly
   override def hasNext: Boolean = _iterator.hasNext
 
   override def next(): util.Map[String, AnyRef] = {
-    _iterator.next().toMap.mapValues(lv => TypeConverter.scalaType2javaType(lv.value).asInstanceOf[AnyRef]).asJava
+    _iterator.next().toMap.mapValues(lv => TypeConverter.unwrapLynxValue(lv).asInstanceOf[AnyRef]).asJava
   }
 
   override def close(): Unit = {}

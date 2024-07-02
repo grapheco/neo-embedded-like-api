@@ -65,7 +65,7 @@ class TransactionImpl(private val delegate: PandaTransaction) extends Transactio
 
   override def execute(query: String, parameters: util.Map[String, AnyRef]): Result = {
     checkState()
-    val convertedParameters: Map[String, AnyRef] = parameters.asScala.toMap.mapValues(TypeConverter.javaType2scalaType(_).asInstanceOf[AnyRef])
+    val convertedParameters: Map[String, AnyRef] = parameters.asScala.toMap.mapValues(TypeConverter.toLynxValue(_).asInstanceOf[AnyRef])
     val lr = delegate.executeQuery(query, convertedParameters)
     val r = ResultImpl(delegate, lr)
     resultResources.append(r)
