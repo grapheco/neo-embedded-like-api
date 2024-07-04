@@ -103,7 +103,7 @@ class DeleteNodeStressIT
     void shouldBeAbleToRemovePropertiesWhileDeletingNode() throws InterruptedException, ExecutionException
     {
         // Given
-        Future query1 = executeInThread( "MATCH (n:L {prop:42}) OPTIONAL MATCH (m:L {prop:1337}) WITH n MATCH () REMOVE n.prop" );
+        Future query1 = executeInThread( "MATCH (n:L {prop:42}) OPTIONAL MATCH (m:L {prop:1337}) WITH n MATCH () REMOVE n.prop" ); //todo fix optional
         Future query2 = executeInThread( "MATCH (n:L {prop:42}) DELETE n" );
 
         // When

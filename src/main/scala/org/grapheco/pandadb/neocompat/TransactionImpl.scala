@@ -5,6 +5,7 @@ import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.property.LynxString
 import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxPropertyKey, LynxRelationshipType}
 import org.grapheco.pandadb.facade.PandaTransaction
+import org.grapheco.pandadb.exception.UnsupportedSyntaxException
 import org.neo4j.graphdb.schema.Schema
 import org.neo4j.graphdb.{NotFoundException, TransactionTerminatedException}
 import org.neo4j.graphdb.traversal.{BidirectionalTraversalDescription, TraversalDescription}
