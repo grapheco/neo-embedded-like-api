@@ -3,8 +3,9 @@ package org.grapheco.pandadb.neocompat
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.property.{LynxFloat, LynxNull}
 import org.grapheco.lynx.types.spatial.{Cartesian2D, Cartesian3D, Geographic2D, Geographic3D}
+import org.grapheco.lynx.types.structural.{LynxNode, LynxRelationship}
 import org.grapheco.pandadb.facade.Direction.Direction
-import org.grapheco.pandadb.facade.Direction
+import org.grapheco.pandadb.facade.{Direction, PandaTransaction}
 import org.neo4j.exceptions.CypherExecutionException
 import org.neo4j.values.storable.Values
 
@@ -29,10 +30,12 @@ object TypeConverter {
     }
   }
 
-  def unwrapLynxValue(origin: LynxValue): Any = {
+  def unwrapLynxValue(tx: PandaTransaction, origin: LynxValue): Any = {
     origin.value match {
-      case l: List[LynxValue] => l.map(unwrapLynxValue).asJava
-      case m: Map[String, LynxValue] => m.mapValues(unwrapLynxValue).asJava
+      case l: List[LynxValue] => l.map(unwrapLynxValue(tx, _)).asJava
+      case m: Map[String, LynxValue] => m.mapValues(unwrapLynxValue(tx, _)).asJava
+      case n: LynxNode => NodeImpl(tx, n)
+      case r: LynxRelationship => RelationshipImpl(tx, r)
       case p: Geographic2D => Values.pointValue(org.neo4j.values.storable.CoordinateReferenceSystem.WGS84, p.x.value, p.y.value)
       case p: Geographic3D => Values.pointValue(org.neo4j.values.storable.CoordinateReferenceSystem.WGS84_3D, p.x.value, p.y.value, p.z.value)
       case p: Cartesian2D => Values.pointValue(org.neo4j.values.storable.CoordinateReferenceSystem.Cartesian, p.x.value, p.y.value)
