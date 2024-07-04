@@ -2,10 +2,11 @@ package org.grapheco.pandadb.neocompat
 
 import org.grapheco.lynx.runner.{NodeFilter, RelationshipFilter}
 import org.grapheco.lynx.types.LynxValue
+import org.grapheco.lynx.LynxResult
 import org.grapheco.lynx.types.property.LynxString
 import org.grapheco.lynx.types.structural.{LynxNodeLabel, LynxPropertyKey, LynxRelationshipType}
+import org.grapheco.pandadb.exception.EntityNotFoundException
 import org.grapheco.pandadb.facade.PandaTransaction
-import org.grapheco.pandadb.exception.UnsupportedSyntaxException
 import org.neo4j.graphdb.schema.Schema
 import org.neo4j.graphdb.{NotFoundException, TransactionTerminatedException}
 import org.neo4j.graphdb.traversal.{BidirectionalTraversalDescription, TraversalDescription}
@@ -58,7 +59,12 @@ class TransactionImpl(private val delegate: PandaTransaction) extends Transactio
 
   override def execute(query: String): Result = {
     checkState()
-    val lr = delegate.executeQuery(query)
+    var lr: LynxResult = null
+    try {
+      lr = delegate.executeQuery(query)
+    } catch {
+      case e: EntityNotFoundException =>  throw new NotFoundException(e.getMessage, e)
+    }
     val r = ResultImpl(delegate, lr)
     resultResources.append(r)
     r
@@ -67,7 +73,12 @@ class TransactionImpl(private val delegate: PandaTransaction) extends Transactio
   override def execute(query: String, parameters: util.Map[String, AnyRef]): Result = {
     checkState()
     val convertedParameters: Map[String, AnyRef] = parameters.asScala.toMap.mapValues(TypeConverter.toLynxValue(_).asInstanceOf[AnyRef])
-    val lr = delegate.executeQuery(query, convertedParameters)
+    var lr: LynxResult = null
+    try{
+      lr = delegate.executeQuery(query, convertedParameters)
+    } catch {
+      case e: EntityNotFoundException =>  throw new NotFoundException(e.getMessage, e)
+    }
     val r = ResultImpl(delegate, lr)
     resultResources.append(r)
     r
