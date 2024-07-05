@@ -25,6 +25,7 @@ import org.junit.jupiter.api._
 import org.junit.jupiter.api.{AfterAll, BeforeAll}
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.neo4j.graphdb.{GraphDatabaseService, Result, Transaction}
+import scala.collection.JavaConverters._
 
 import java.util.regex.Pattern
 
@@ -53,12 +54,17 @@ class ExecutionResultTest {
       "where id(zero) = 0 AND id(one) = 1 AND id(two) = 2 AND id(three) = 3 AND id(four) = 4 AND id(five) = 5 AND id(six) = 6 AND id(seven) = 7 AND id(eight) = 8 AND id(nine) = 9 " +
       "return zero, one, two, three, four, five, six, seven, eight, nine"
 
-    assert(execute(q).columns == columns)
+    val cols  = execute(q).columns.asScala.toList
+    assert(cols == columns)
 
     val regex = "zero.*one.*two.*three.*four.*five.*six.*seven.*eight.*nine"
     val pattern = Pattern.compile(regex)
 
-    val stringDump = execute(q).resultAsString()
+    val test = execute("match (n) return n")
+    println(test.resultAsString())
+
+    val stringDump2 = execute(q)
+    val stringDump = stringDump2.resultAsString()
     assertTrue( pattern.matcher(stringDump).find(), "Columns did not appear in the expected order: \n" + stringDump )
   }
 
