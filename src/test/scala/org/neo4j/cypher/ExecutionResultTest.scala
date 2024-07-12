@@ -140,7 +140,6 @@ class ExecutionResultTest {
 
   @Test
   def correctIndexStatisticsForIndexWithNameAdded = {
-    createLabeledNode("Person")
     val result = execute("create index my_index for (n:Person) on (n.name)")
     val stats  = result.getQueryStatistics
 
@@ -151,7 +150,7 @@ class ExecutionResultTest {
   @Test
   def correctConstraintStatisticsForUniquenessConstraintAdded =  {
     createLabeledNode("Person")
-    val result = execute("create constraint for (n:Person) require n.name is unique")
+    val result = execute("create constraint for (n:Person) require n.name is unique")//TODO not opencypher syntax, may impl it using pandadb.createConstraint("Person", "name", UNIQUE)
     val stats  = result.getQueryStatistics
 
     assert(stats.getConstraintsAdded == 1)

@@ -13,7 +13,7 @@ case class ResultImpl(private val tx: PandaTransaction, private val delegate: Ly
 
   private val _iterator: Iterator[LynxRecord] = delegate.records()
   private val _columns: util.List[String] = delegate.columns().toList.asJava
-  override def getQueryExecutionType: QueryExecutionType = ???
+  override def getQueryExecutionType: QueryExecutionType = QueryExecutionType.query(QueryExecutionType.QueryType.READ_WRITE)
 
   override def columns(): util.List[String] = _columns
 
