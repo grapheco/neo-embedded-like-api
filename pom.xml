@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.grapheco</groupId>
     <artifactId>neo4panda</artifactId>
-    <packaging>pom</packaging>
+    <packaging>jar</packaging>
     <version>0.5.0</version>
 
     <properties>
