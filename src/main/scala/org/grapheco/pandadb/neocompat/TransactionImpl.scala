@@ -281,7 +281,7 @@ class TransactionImpl(private val delegate: PandaTransaction) extends Transactio
   override def close(): Unit = {
     if (txState != TxState.Committed) rollback()
     txState = TxState.Closed
-    //TODO do we need mannual call rollback???
+    //TODO do we need manually call rollback???
     releasResource()
   }
 
